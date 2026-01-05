@@ -3,8 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Expense
-from .serializers import ExpenseSerializer
+
+from .models import Expense,Budget
+from .serializers import ExpenseSerializer,BudgetSerializer
 
 class ExpenseAPIView(APIView):
     def get(self,request):
@@ -17,3 +18,16 @@ class ExpenseAPIView(APIView):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
+    
+class BudgetAPIView(APIView):
+    def get(self, request):
+        budgets = Budget.objects.all()
+        serializer = BudgetSerializer(budgets, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = BudgetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
