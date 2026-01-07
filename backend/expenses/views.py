@@ -11,26 +11,26 @@ from django.db.models import Sum
 
 class ExpenseAPIView(APIView):
     def get(self,request):
-        expenses=Expense.objects.all()
+        expenses=Expense.objects.filter(user=request.user)
         serializer=ExpenseSerializer(expenses,many=True)
         return Response(serializer.data)
     def post(self,request):
         serializer=ExpenseSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
     
 class BudgetAPIView(APIView):
     def get(self, request):
-        budgets = Budget.objects.all()
+        budgets = Budget.objects.filter(user=request.user)
         serializer = BudgetSerializer(budgets, many=True)
         return Response(serializer.data)
 
     def post(self, request):
         serializer = BudgetSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -39,10 +39,10 @@ class BudgetStatusAPIView(APIView):
         now=datetime.now()
         month=now.month
         year=now.year
-        total_spent=(Expense.objects.filter(created_at__month=month,created_at__year=year)
+        total_spent=(Expense.objects.filter(user=request.user,created_at__month=month,created_at__year=year)
                      .aggregate(total=Sum("amount"))["total"]
                      ) or 0
-        budget=Budget.objects.filter(month=month,year=year).first()
+        budget=Budget.objects.filter(user=request.user,month=month,year=year).first()
         if budget:
             remaining_budget=budget.amount-total_spent
             budget_exceeded=total_spent>budget.amount

@@ -6,6 +6,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model=Expense
         fields='__all__'
 class BudgetSerializer(serializers.ModelSerializer):
+    user=serializers.ReadOnlyField(source='user.id')
     class Meta:
         model=Budget
         fields='__all__'
