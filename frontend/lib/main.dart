@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -45,12 +46,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      final accessToken = data['access'];
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('access_token', accessToken);
+
       setState(() {
-        message = "Login successful \nAccess Token:\n${data['access']}";
-      });
-    } else {
-      setState(() {
-        message = "Login failed ";
+        message = "Login successful";
       });
     }
   }
