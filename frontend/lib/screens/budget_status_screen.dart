@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/budget_status.dart';
+import 'set_budget.dart';
 
 class BudgetStatusScreen extends StatefulWidget {
   const BudgetStatusScreen({super.key});
@@ -66,8 +67,8 @@ class _BudgetStatusScreenState extends State<BudgetStatusScreen> {
                       Text("Remaining: ₹${status!.remainingBudget ?? 'N/A'}"),
                       const SizedBox(height: 20),
                       status!.budgetExceeded
-                          ? const Text(
-                              "Budget Exceeded!",
+                          ?  Text(
+                              "Budget Exceeded by ₹${status!.exceededBy}",
                               style: TextStyle(color: Colors.red, fontSize: 18),
                             )
                           : const Text(
@@ -75,6 +76,21 @@ class _BudgetStatusScreenState extends State<BudgetStatusScreen> {
                               style:
                                   TextStyle(color: Colors.green, fontSize: 18),
                             ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final updated = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const SetBudgetScreen()),
+                          );
+
+                          if (updated == true) {
+                            fetchBudgetStatus(); // refresh data
+                          }
+                        },
+                        child: const Text("Set / Update Budget"),
+                      ),
                     ],
                   ),
                 ),

@@ -5,6 +5,7 @@ class BudgetStatus {
   final double? budget;
   final double? remainingBudget;
   final bool budgetExceeded;
+  final double exceededBy;
 
   BudgetStatus({
     required this.month,
@@ -13,6 +14,7 @@ class BudgetStatus {
     required this.budget,
     required this.remainingBudget,
     required this.budgetExceeded,
+    required this.exceededBy,
   });
 
   factory BudgetStatus.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class BudgetStatus {
       remainingBudget:
           json['remaining_budget'] != null ? json['remaining_budget'].toDouble() : null,
       budgetExceeded: json['budget_exceeded'],
+      exceededBy: json['exceeded_by'],
     );
   }
 }

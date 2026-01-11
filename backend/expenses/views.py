@@ -1,4 +1,3 @@
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,11 +27,19 @@ class BudgetAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = BudgetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        month = request.data.get('month')
+        year = request.data.get('year')
+        amount = request.data.get('amount')
+
+        budget, created = Budget.objects.update_or_create(
+            user=request.user,
+            month=month,
+            year=year,
+            defaults={'amount': amount}
+        )
+
+        serializer = BudgetSerializer(budget)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class BudgetStatusAPIView(APIView):
     def get(self,request):
@@ -44,7 +51,8 @@ class BudgetStatusAPIView(APIView):
                      ) or 0
         budget=Budget.objects.filter(user=request.user,month=month,year=year).first()
         if budget:
-            remaining_budget=budget.amount-total_spent
+            remaining_budget=0 if budget.amount-total_spent<=0 else budget.amount-total_spent
+            exceeded_by=abs(budget.amount-total_spent)
             budget_exceeded=total_spent>budget.amount
             budget_amount=budget.amount
         else:
@@ -57,5 +65,7 @@ class BudgetStatusAPIView(APIView):
             'total_spent':total_spent,
             'budget':budget_amount,
             'remaining_budget':remaining_budget,
-            'budget_exceeded':budget_exceeded
+            'budget_exceeded':budget_exceeded,
+            'exceeded_by':exceeded_by
+
                                                     })
