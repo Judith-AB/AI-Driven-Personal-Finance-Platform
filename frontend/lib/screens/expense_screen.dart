@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import 'budget_status_screen.dart';
 import 'login_screen.dart';
+import 'add_expenses.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -72,13 +73,24 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         title: const Text("My Expenses"),
         actions: [
           IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              final added = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+              );
+
+              if (added == true) {
+                fetchExpenses(); // refresh list
+              }
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.account_balance_wallet),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const BudgetStatusScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const BudgetStatusScreen()),
               );
             },
           ),
