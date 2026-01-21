@@ -27,7 +27,7 @@ class _BudgetStatusScreenState extends State<BudgetStatusScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
 
-    final url = Uri.parse("http://192.168.1.8:8000/api/budget-status/");
+    final url = Uri.parse("http://10.110.214.170:8000/api/budget-status/");
 
     final response = await http.get(
       url,
@@ -55,38 +55,78 @@ class _BudgetStatusScreenState extends State<BudgetStatusScreen> {
               : Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text("Month: ${status!.month}/${status!.year}",
-                          style: const TextStyle(fontSize: 18)),
-                      const SizedBox(height: 10),
-                      Text("Total Spent: ₹${status!.totalSpent}"),
-                      const SizedBox(height: 10),
-                      Text("Budget: ₹${status!.budget ?? 'Not set'}"),
-                      const SizedBox(height: 10),
-                      Text("Remaining: ₹${status!.remainingBudget ?? 'N/A'}"),
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Text(
+                                "Budget for ${status!.month}/${status!.year}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text("Total Spent: ₹${status!.totalSpent}",
+                                  style: const TextStyle(fontSize: 16)),
+                              const SizedBox(height: 8),
+                              Text("Budget: ₹${status!.budget ?? 'Not set'}",
+                                  style: const TextStyle(fontSize: 16)),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Remaining: ₹${status!.remainingBudget ?? 'N/A'}",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: status!.budgetExceeded
+                                      ? Colors.red
+                                      : Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 20),
-                      status!.budgetExceeded
-                          ?  Text(
-                              "Budget Exceeded by ₹${status!.exceededBy}",
-                              style: TextStyle(color: Colors.red, fontSize: 18),
-                            )
-                          : const Text(
-                              " Within Budget",
-                              style:
-                                  TextStyle(color: Colors.green, fontSize: 18),
+                      Card(
+                        color: status!.budgetExceeded
+                            ? Colors.red.shade100
+                            : Colors.green.shade100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            status!.budgetExceeded
+                                ? "⚠️ Budget Exceeded by ₹${status!.exceededBy} "
+                                : "You are within budget",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: status!.budgetExceeded
+                                  ? Colors.red
+                                  : Colors.green,
                             ),
-                      const SizedBox(height: 24),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () async {
                           final updated = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const SetBudgetScreen()),
+                              builder: (_) => const SetBudgetScreen(),
+                            ),
                           );
 
                           if (updated == true) {
-                            fetchBudgetStatus(); // refresh data
+                            fetchBudgetStatus();
                           }
                         },
                         child: const Text("Set / Update Budget"),

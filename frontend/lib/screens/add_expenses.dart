@@ -22,7 +22,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
 
-    final url = Uri.parse("http://192.168.1.8:8000/api/expenses/");
+    final url = Uri.parse("http://10.110.214.170:8000/api/expenses/");
 
     final response = await http.post(
       url,

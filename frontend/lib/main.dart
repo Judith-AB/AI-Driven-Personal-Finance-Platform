@@ -13,13 +13,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AuthCheck(),
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
+      ),
+      home: const AuthCheck(),
     );
   }
 }
-
 
 class AuthCheck extends StatefulWidget {
   const AuthCheck({super.key});

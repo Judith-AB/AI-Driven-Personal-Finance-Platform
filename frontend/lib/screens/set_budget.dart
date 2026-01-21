@@ -24,7 +24,7 @@ class _SetBudgetScreenState extends State<SetBudgetScreen> {
     final month = now.month;
     final year = now.year;
 
-    final url = Uri.parse("http://192.168.1.8:8000/api/budgets/");
+    final url = Uri.parse("http://10.110.214.170:8000/api/budgets/");
 
     final response = await http.post(
       url,

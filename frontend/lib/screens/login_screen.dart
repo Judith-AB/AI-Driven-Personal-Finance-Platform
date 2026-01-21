@@ -16,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
 
   Future<void> login() async {
-    final url = Uri.parse("http://192.168.1.8:8000/api/token/");
+    final url = Uri.parse("http://10.110.214.170:8000/api/token/");
 
     try {
       final response = await http.post(
@@ -48,20 +48,24 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      appBar: AppBar(title: const Text("Login"),backgroundColor: Colors.blueAccent,),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             TextField(
+              style: TextStyle(color: const Color.fromARGB(255, 199, 199, 199)),
               controller: usernameController,
               decoration: const InputDecoration(
                 labelText: "Username",
+                
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 16),
             TextField(
+              style: TextStyle(color: const Color.fromARGB(255, 199, 199, 199)),
               controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(

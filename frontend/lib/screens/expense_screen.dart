@@ -34,7 +34,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       return;
     }
 
-    final url = Uri.parse("http://192.168.1.8:8000/api/expenses/");
+    final url = Uri.parse("http://10.110.214.170:8000/api/expenses/");
 
     final response = await http.get(
       url,
@@ -108,13 +108,49 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   itemCount: expenses.length,
                   itemBuilder: (context, index) {
                     final e = expenses[index];
-                    return ListTile(
-                      title: Text(e.description),
-                      subtitle: Text(e.category),
-                      trailing: Text("₹${e.amount}"),
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          e.description,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          e.category,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        trailing: Text(
+                          "₹${e.amount}",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     );
                   },
                 ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final added = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+          );
+
+          if (added == true) {
+            fetchExpenses();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
