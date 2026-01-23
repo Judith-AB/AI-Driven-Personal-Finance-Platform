@@ -7,6 +7,7 @@ import '../models/expense.dart';
 import 'budget_status_screen.dart';
 import 'login_screen.dart';
 import 'add_expenses.dart';
+import 'edit_expense_screen.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -70,10 +71,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 5, 81, 144),
         title: const Text("My Expenses"),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
+            color: Colors.black,
             onPressed: () async {
               final added = await Navigator.push(
                 context,
@@ -87,6 +90,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.account_balance_wallet),
+            color: Colors.black,
             onPressed: () {
               Navigator.push(
                 context,
@@ -96,6 +100,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
+            color: Colors.black,
             onPressed: logout,
           ),
         ],
@@ -116,16 +121,31 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
+                        onTap: () async {
+                          final updated = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditExpenseScreen(expense: e),
+                            ),
+                          );
+
+                          if (updated == true) {
+                            fetchExpenses(); // refresh list
+                          }
+                        },
+                        tileColor: const Color.fromARGB(255, 0, 0, 0),
                         title: Text(
                           e.description,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
+                            color: Colors.white60,
                             fontSize: 16,
                           ),
                         ),
                         subtitle: Text(
                           e.category,
-                          style: const TextStyle(color: Colors.grey),
+                          style: const TextStyle(
+                              color: Color.fromARGB(255, 139, 139, 139)),
                         ),
                         trailing: Text(
                           "₹${e.amount}",

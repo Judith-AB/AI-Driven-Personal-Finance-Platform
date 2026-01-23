@@ -47,7 +47,10 @@ class _BudgetStatusScreenState extends State<BudgetStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Budget Status")),
+      appBar: AppBar(
+        title: const Text("Budget Status"),
+        backgroundColor: const Color.fromARGB(255, 5, 81, 144),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : status == null

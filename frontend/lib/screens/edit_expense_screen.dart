@@ -2,29 +2,45 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/expense.dart';
 
-class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+class EditExpenseScreen extends StatefulWidget {
+  final Expense expense;
+
+  const EditExpenseScreen({super.key, required this.expense});
 
   @override
-  State<AddExpenseScreen> createState() => _AddExpenseScreenState();
+  State<EditExpenseScreen> createState() => _EditExpenseScreenState();
 }
 
-class _AddExpenseScreenState extends State<AddExpenseScreen> {
-  final amountController = TextEditingController();
-  final descriptionController = TextEditingController();
+class _EditExpenseScreenState extends State<EditExpenseScreen> {
+  late TextEditingController amountController;
+  late TextEditingController descriptionController;
+  late TextEditingController categoryController;
 
   bool isSaving = false;
 
-  Future<void> saveExpense() async {
+  @override
+  void initState() {
+    super.initState();
+    amountController =
+        TextEditingController(text: widget.expense.amount.toString());
+    descriptionController =
+        TextEditingController(text: widget.expense.description);
+    categoryController = TextEditingController(text: widget.expense.category);
+  }
+
+  Future<void> updateExpense() async {
     setState(() => isSaving = true);
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
 
-    final url = Uri.parse("http://10.110.214.170:8000/api/expenses/");
+    final url = Uri.parse(
+      "http://10.110.214.170:8000/api/expenses/${widget.expense.id}/",
+    );
 
-    final response = await http.post(
+    final response = await http.put(
       url,
       headers: {
         "Content-Type": "application/json",
@@ -33,20 +49,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       body: jsonEncode({
         "amount": double.parse(amountController.text),
         "description": descriptionController.text,
+        "category": categoryController.text,
       }),
     );
 
     setState(() => isSaving = false);
 
-    if (response.statusCode == 201 && mounted) {
-      Navigator.pop(context, true); // return success
+    if (response.statusCode == 200 && mounted) {
+      Navigator.pop(context, true); // success
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Expense"),
+      appBar: AppBar(title: const Text("Edit Expense"),
       backgroundColor: const Color.fromARGB(255, 5, 81, 144,)),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -57,6 +74,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Amount",
+               labelStyle: TextStyle(color: Color.fromARGB(255, 109, 111, 114)),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -68,12 +86,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: categoryController,
+              decoration: const InputDecoration(
+                labelText: "Category",
+                border: OutlineInputBorder(),
+              ),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: isSaving ? null : saveExpense,
+              onPressed: isSaving ? null : updateExpense,
               child: isSaving
                   ? const CircularProgressIndicator()
-                  : const Text("Save Expense"),
+                  : const Text("Update Expense"),
             ),
           ],
         ),

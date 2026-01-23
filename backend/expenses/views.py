@@ -19,7 +19,24 @@ class ExpenseAPIView(APIView):
             serializer.save(user=request.user,category='Others')
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
-    
+    def put(self,request,pk):
+        try:
+            expense=Expense.objects.get(pk=pk,user=request.user)
+        except Expense.DoesNotExist:
+            return Response({
+                "error":"Expense not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer=ExpenseSerializer(
+            expense,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
 class BudgetAPIView(APIView):
     def get(self, request):
         budgets = Budget.objects.filter(user=request.user)

@@ -48,7 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login"),backgroundColor: Colors.blueAccent,),
+      appBar: AppBar(
+        title: const Text("Login"),
+        backgroundColor: const Color.fromARGB(255, 5, 81, 144),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -58,11 +61,9 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: usernameController,
               decoration: const InputDecoration(
                 labelText: "Username",
-                
                 border: OutlineInputBorder(),
               ),
             ),
-
             const SizedBox(height: 16),
             TextField(
               style: TextStyle(color: const Color.fromARGB(255, 199, 199, 199)),
