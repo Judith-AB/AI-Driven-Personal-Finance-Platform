@@ -1,0 +1,25 @@
+description,category
+Uber ride,Transport
+Bus ticket,Transport
+Train pass,Transport
+Petrol refill,Transport
+Pizza order,Food
+Burger and fries,Food
+Coffee,Food
+Tea and snacks,Food
+Electricity bill,Bills
+Water bill,Bills
+Internet recharge,Bills
+Mobile recharge,Bills
+Netflix subscription,Entertainment
+Movie ticket,Entertainment
+Spotify premium,Entertainment
+Gym membership,Health
+Doctor consultation,Health
+Medicine purchase,Health
+Books purchase,Education
+Online course,Education
+College fees,Education
+Groceries shopping,Groceries
+Vegetables and fruits,Groceries
+Milk and bread,Groceries
