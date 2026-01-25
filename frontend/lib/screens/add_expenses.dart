@@ -53,15 +53,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         child: Column(
           children: [
             TextField(
+              style: TextStyle(color: const Color.fromARGB(179, 199, 199, 199)),
               controller: amountController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Amount",
+                labelStyle: TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
+              style: TextStyle(color: const Color.fromARGB(179, 199, 199, 199)),
               controller: descriptionController,
               decoration: const InputDecoration(
                 labelText: "Description",

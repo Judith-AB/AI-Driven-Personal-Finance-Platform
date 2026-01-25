@@ -367,6 +367,7 @@ class AnalyticsScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: const Color.fromARGB(255, 88, 141, 234),
           title: const Text("Analytics"),
           bottom: const TabBar(
             tabs: [

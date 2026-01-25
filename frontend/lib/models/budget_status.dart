@@ -17,16 +17,21 @@ class BudgetStatus {
     required this.exceededBy,
   });
 
-  factory BudgetStatus.fromJson(Map<String, dynamic> json) {
-    return BudgetStatus(
-      month: json['month'],
-      year: json['year'],
-      totalSpent: json['total_spent'].toDouble(),
-      budget: json['budget'] != null ? json['budget'].toDouble() : null,
-      remainingBudget:
-          json['remaining_budget'] != null ? json['remaining_budget'].toDouble() : null,
-      budgetExceeded: json['budget_exceeded'],
-      exceededBy: json['exceeded_by'],
-    );
-  }
+ factory BudgetStatus.fromJson(Map<String, dynamic> json) {
+  return BudgetStatus(
+    month: json['month'],
+    year: json['year'],
+    totalSpent: (json['total_spent'] as num).toDouble(),
+    budget: json['budget'] != null
+        ? (json['budget'] as num).toDouble()
+        : null,
+    remainingBudget: json['remaining_budget'] != null
+        ? (json['remaining_budget'] as num).toDouble()
+        : null,
+    budgetExceeded: json['budget_exceeded'],
+    exceededBy: json['exceeded_by'] != null
+        ? (json['exceeded_by'] as num).toDouble()
+        : 0.0,
+  );
+}
 }

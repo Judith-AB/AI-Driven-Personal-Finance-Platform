@@ -13,10 +13,22 @@ class Expense(models.Model):
             return f"{self.user.username} - {self.amount}"
         return f"Anonymous - {self.amount}"
     
+
 class Budget(models.Model):
-    user=models.ForeignKey(User,on_delete=models.CASCADE)
-    month=models.IntegerField()
-    year=models.IntegerField()
-    amount=models.FloatField()
+    PERIOD_CHOICES = [
+        ("monthly", "Monthly"),
+        ("weekly", "Weekly"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    period = models.CharField(max_length=10, choices=PERIOD_CHOICES)
+    amount = models.FloatField()
+    start_date = models.DateField()
+
+    class Meta:
+        unique_together = ("user", "period", "start_date")
+
     def __str__(self):
-        return f"{self.user.username}-{self.month}/{self.year}-{self.amount}"
+        return f"{self.user.username} - {self.period} - {self.start_date}"
+
+

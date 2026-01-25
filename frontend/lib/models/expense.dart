@@ -3,12 +3,14 @@ class Expense {
   final double amount;
   final String description;
   final String category;
+  final DateTime createdAt;
 
   Expense({
     required this.id,
     required this.amount,
     required this.description,
     required this.category,
+    required this.createdAt,
   });
 
   factory Expense.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Expense {
       amount: json['amount'].toDouble(),
       description: json['description'],
       category: json['category'],
+      createdAt: DateTime.parse(json['created_at']),
     );
   }
 }
