@@ -192,7 +192,7 @@ class _WeeklyBudgetStatusScreenState extends State<WeeklyBudgetStatusScreen> {
               const SizedBox(height: 20),
             ],
 
-            // ➕ Set / Update Button (always visible)
+            //  Set / Update Button
             ElevatedButton(
               onPressed: () async {
                 final updated = await Navigator.push(

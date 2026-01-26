@@ -13,6 +13,11 @@ from django.db.models.functions import TruncDate
 from .ml_utils import predict_category
 from rest_framework.permissions import IsAuthenticated
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
+
+
 def get_week_start(date):
     return date - timedelta(days=date.weekday())
 
@@ -27,12 +32,67 @@ class ExpenseAPIView(APIView):
         description = data.get("description", "")
         predicted_category = predict_category(description)
         data["category"] = predicted_category
+
         serializer = ExpenseSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            expense = serializer.save(user=request.user)
+            today = date.today()
+            # WEEKLY CHECK
+            week_start = today - timedelta(days=today.weekday())
+            week_end = week_start + timedelta(days=6)
+
+            week_start_dt = make_aware(datetime.combine(week_start, time.min))
+            week_end_dt = make_aware(datetime.combine(week_end, time.max))
+
+            weekly_total = Expense.objects.filter(
+                user=request.user,
+                created_at__range=(week_start_dt, week_end_dt)
+            ).aggregate(Sum("amount"))["amount__sum"] or 0
+
+            weekly_budget = Budget.objects.filter(
+                user=request.user,
+                period="weekly",
+                start_date=week_start
+            ).first()
+
+            channel_layer = get_channel_layer()
+
+            if weekly_budget and weekly_total > weekly_budget.amount:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{request.user.id}",
+                    {
+                        "type": "budget_alert",
+                        "message": "⚠️ Weekly budget exceeded!"
+                    }
+                )
+
+            # MONTHLY CHECK
+            month_start = today.replace(day=1)
+
+            monthly_total = Expense.objects.filter(
+                user=request.user,
+                created_at__date__gte=month_start
+            ).aggregate(Sum("amount"))["amount__sum"] or 0
+
+            monthly_budget = Budget.objects.filter(
+                user=request.user,
+                period="monthly",
+                start_date=month_start
+            ).first()
+
+            if monthly_budget and monthly_total > monthly_budget.amount:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{request.user.id}",
+                    {
+                        "type": "budget_alert",
+                        "message": "⚠️ Monthly budget exceeded!"
+                    }
+                )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def put(self,request,pk):
         try:
             expense=Expense.objects.get(pk=pk,user=request.user)
@@ -112,6 +172,7 @@ class MonthlyBudgetStatusAPIView(APIView):
             if total_spent > budget.amount:
                 exceeded = True
                 exceeded_by = total_spent - budget.amount
+              
 
         return Response({
             "month": today.month,
@@ -188,7 +249,7 @@ class WeeklyBudgetStatusAPIView(APIView):
                 exceeded = True
                 exceeded_by = abs(remaining)
                 remaining = 0
-
+                
         return Response({
             "period": "weekly",
             "week_start": week_start,

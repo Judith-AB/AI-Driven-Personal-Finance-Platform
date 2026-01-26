@@ -11,7 +11,7 @@ data = pd.read_csv("expense_data.csv")
 X = data["description"]
 y = data["category"]
 
-# Build ML pipeline
+#ML pipeline
 model = Pipeline([
     ("tfidf", TfidfVectorizer(stop_words="english")),
     ("classifier", MultinomialNB())

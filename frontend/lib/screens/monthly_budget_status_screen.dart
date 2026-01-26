@@ -44,7 +44,7 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
 
-    print("MONTHLY STATUS TOKEN: $token");
+    //print("MONTHLY STATUS TOKEN: $token");
 
     final url =
         Uri.parse("http://10.110.214.170:8000/api/budget/monthly/status/");
@@ -56,8 +56,8 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
       headers: {"Authorization": "Bearer $token"},
     );
 
-    print("STATUS CODE: ${response.statusCode}");
-    print("RESPONSE BODY: ${response.body}");
+    //  print("STATUS CODE: ${response.statusCode}");
+    //print("RESPONSE BODY: ${response.body}");
 
     if (response.statusCode == 200) {
       setState(() {
@@ -102,7 +102,6 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // 🔋 Budget usage indicator
                           Card(
                             elevation: 4,
                             shape: RoundedRectangleBorder(
@@ -121,16 +120,19 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  LinearProgressIndicator(
-                                    value: usagePercent,
-                                    minHeight: 14,
-                                    backgroundColor: Colors.grey.shade300,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      usagePercent > 0.9
-                                          ? Colors.red
-                                          : usagePercent > 0.7
-                                              ? Colors.orange
-                                              : Colors.green,
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: LinearProgressIndicator(
+                                      value: usagePercent,
+                                      minHeight: 18,
+                                      backgroundColor: Colors.grey.shade300,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        usagePercent > 0.9
+                                            ? Colors.red
+                                            : usagePercent > 0.7
+                                                ? Colors.orange
+                                                : Colors.green,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -172,9 +174,7 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
                                         ? "Budget: Not set"
                                         : "Budget: ₹${status!.budget}",
                                   ),
-                                
                                   Text(
-                                    
                                     "Remaining: ₹${status!.remainingBudget ?? 'N/A'}",
                                     style: TextStyle(
                                       color: status!.budgetExceeded

@@ -11,8 +11,8 @@ class DailyAnalyticsTab extends StatelessWidget {
     final Map<String, double> dailyTotals = {};
 
     for (var e in expenses) {
-      final d = e.createdAt;
-      final key = "${d.day}/${d.month}";
+      final localDate = e.createdAt.toLocal();
+      final key = "${localDate.day}/${localDate.month}";
 
       dailyTotals[key] = (dailyTotals[key] ?? 0) + e.amount;
     }
@@ -32,8 +32,11 @@ class DailyAnalyticsTab extends StatelessWidget {
     final values = dailySummary.values.toList();
 
     final maxY = values.reduce((a, b) => a > b ? a : b);
+    double total = dailySummary.values.fold(0, (a, b) => a + b);
+    double avg = total / dailySummary.length;
 
     return ListView(
+
       padding: const EdgeInsets.all(16),
       children: [
         const Text(
@@ -41,6 +44,7 @@ class DailyAnalyticsTab extends StatelessWidget {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
+        
         SizedBox(
           height: 240,
           child: LineChart(
@@ -99,8 +103,30 @@ class DailyAnalyticsTab extends StatelessWidget {
                     (i) => FlSpot(i.toDouble(), values[i]),
                   ),
                   isCurved: true,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
+                  curveSmoothness: 0.25,
+                  barWidth: 1.5,
+                  color: Colors.blueAccent,
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.blueAccent.withOpacity(0.3),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, percent, bar, index) =>
+                        FlDotCirclePainter(
+                      radius: 4,
+                      color: Colors.white,
+                      strokeWidth: 2,
+                      strokeColor: Colors.blueAccent,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -114,11 +140,25 @@ class DailyAnalyticsTab extends StatelessWidget {
         const SizedBox(height: 8),
         ...dailySummary.entries.map((entry) {
           return Card(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: ListTile(
-              title: Text(entry.key),
+              leading: CircleAvatar(
+                backgroundColor: Colors.blue.shade100,
+                child: Icon(Icons.receipt, color: Colors.blue),
+              ),
+              title: Text(
+                entry.key,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               trailing: Text(
-                "₹${entry.value}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                "₹${entry.value.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           );
@@ -367,7 +407,7 @@ class AnalyticsScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color.fromARGB(255, 88, 141, 234),
+           backgroundColor: const Color.fromARGB(255, 5, 81, 144),
           title: const Text("Analytics"),
           bottom: const TabBar(
             tabs: [
