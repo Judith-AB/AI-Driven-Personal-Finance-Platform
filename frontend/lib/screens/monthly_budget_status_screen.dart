@@ -145,7 +145,7 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
 
                           const SizedBox(height: 20),
 
-                          // 📦 Monthly budget details
+                          //Monthly budget details
                           Card(
                             elevation: 4,
                             shape: RoundedRectangleBorder(
@@ -172,7 +172,9 @@ class _BudgetStatusScreenState extends State<MonthlyBudgetStatusScreen> {
                                         ? "Budget: Not set"
                                         : "Budget: ₹${status!.budget}",
                                   ),
+                                
                                   Text(
+                                    
                                     "Remaining: ₹${status!.remainingBudget ?? 'N/A'}",
                                     style: TextStyle(
                                       color: status!.budgetExceeded

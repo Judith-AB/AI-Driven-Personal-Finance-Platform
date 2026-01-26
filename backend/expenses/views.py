@@ -5,8 +5,10 @@ from rest_framework import status
 from .models import Expense,Budget
 from .serializers import ExpenseSerializer,BudgetSerializer
 
-from datetime import datetime,timedelta,date
-from django.db.models import Sum
+from datetime import datetime,timedelta,date,time
+from django.utils.timezone import make_aware,localtime
+from django.db.models import Sum,F
+from django.db.models.functions import TruncDate
 
 from .ml_utils import predict_category
 from rest_framework.permissions import IsAuthenticated
@@ -106,7 +108,7 @@ class MonthlyBudgetStatusAPIView(APIView):
         exceeded_by = 0
 
         if budget:
-            remaining = budget.amount - total_spent
+            remaining =  0 if (budget.amount - total_spent)<0 else budget.amount - total_spent
             if total_spent > budget.amount:
                 exceeded = True
                 exceeded_by = total_spent - budget.amount
@@ -120,34 +122,6 @@ class MonthlyBudgetStatusAPIView(APIView):
             "budget_exceeded": exceeded,
             "exceeded_by": exceeded_by,
         })
-class BudgetStatusAPIView(APIView):
-    def get(self,request):
-        now=datetime.now()
-        month=now.month
-        year=now.year
-        total_spent=(Expense.objects.filter(user=request.user,created_at__month=month,created_at__year=year)
-                     .aggregate(total=Sum("amount"))["total"]
-                     ) or 0
-        budget=Budget.objects.filter(user=request.user,month=month,year=year).first()
-        if budget:
-            remaining_budget=0 if budget.amount-total_spent<=0 else budget.amount-total_spent
-            exceeded_by=abs(budget.amount-total_spent)
-            budget_exceeded=total_spent>budget.amount
-            budget_amount=budget.amount
-        else:
-            remaining_budget=None
-            budget_exceeded=False
-            budget_amount=None
-        return Response({
-            'month':month,
-            'year':year,
-            'total_spent':total_spent,
-            'budget':budget_amount,
-            'remaining_budget':remaining_budget,
-            'budget_exceeded':budget_exceeded,
-            'exceeded_by':exceeded_by
-
-                                                    })
 class WeeklyBudgetAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -179,19 +153,23 @@ class WeeklyBudgetAPIView(APIView):
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
         )
+
+
 class WeeklyBudgetStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         today = date.today()
 
-        # 🔑 Find Monday of current week
         week_start = today - timedelta(days=today.weekday())
         week_end = week_start + timedelta(days=6)
 
+        week_start_dt = make_aware(datetime.combine(week_start, time.min))
+        week_end_dt = make_aware(datetime.combine(week_end, time.max))
+
         total_spent = Expense.objects.filter(
             user=request.user,
-            created_at__date__range=[week_start, week_end]
+            created_at__range=(week_start_dt, week_end_dt)
         ).aggregate(Sum("amount"))["amount__sum"] or 0
 
         budget = Budget.objects.filter(
@@ -209,6 +187,7 @@ class WeeklyBudgetStatusAPIView(APIView):
             if remaining < 0:
                 exceeded = True
                 exceeded_by = abs(remaining)
+                remaining = 0
 
         return Response({
             "period": "weekly",

@@ -80,8 +80,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final Map<String, List<Expense>> grouped = {};
 
     for (var expense in expenses) {
-      final date =
-          "${expense.createdAt.day}-${expense.createdAt.month}-${expense.createdAt.year}";
+      final localDate = expense.createdAt.toLocal();
+
+      final date = "${localDate.day}-${localDate.month}-${localDate.year}";
 
       if (!grouped.containsKey(date)) {
         grouped[date] = [];
@@ -188,7 +189,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               );
             },
           ),
-      
           IconButton(
             icon: const Icon(Icons.logout),
             color: Colors.black,

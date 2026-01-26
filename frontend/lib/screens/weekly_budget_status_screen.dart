@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'set_weekly_budget.dart';
+
 class WeeklyBudgetStatusScreen extends StatefulWidget {
   const WeeklyBudgetStatusScreen({super.key});
 
@@ -33,14 +35,12 @@ class _WeeklyBudgetStatusScreenState extends State<WeeklyBudgetStatusScreen> {
       headers: {"Authorization": "Bearer $token"},
     );
 
-    if (response.statusCode == 200) {
-      setState(() {
+    setState(() {
+      if (response.statusCode == 200) {
         data = jsonDecode(response.body);
-        isLoading = false;
-      });
-    } else {
-      setState(() => isLoading = false);
-    }
+      }
+      isLoading = false;
+    });
   }
 
   @override
@@ -53,7 +53,7 @@ class _WeeklyBudgetStatusScreenState extends State<WeeklyBudgetStatusScreen> {
 
     if (data == null) {
       return const Scaffold(
-        body: Center(child: Text("No weekly budget data")),
+        body: Center(child: Text("Unable to load weekly budget")),
       );
     }
 
@@ -77,75 +77,138 @@ class _WeeklyBudgetStatusScreenState extends State<WeeklyBudgetStatusScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-          
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      "Weekly Budget Usage",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    LinearProgressIndicator(
-                      value: usagePercent,
-                      minHeight: 14,
-                      backgroundColor: Colors.grey.shade300,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        usagePercent > 0.9
-                            ? Colors.red
-                            : usagePercent > 0.7
-                                ? Colors.orange
-                                : Colors.green,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "${(usagePercent * 100).toStringAsFixed(1)}% used",
-                      textAlign: TextAlign.right,
-                    ),
-                  ],
-                ),
+            Text(
+              "Week: ${data!['week_start']} → ${data!['week_end']}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
               ),
             ),
+            const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
-
-            Card(
-              child: ListTile(
-                title: const Text("Total Spent"),
-                trailing: Text("₹$totalSpent"),
-              ),
-            ),
-
-            Card(
-              child: ListTile(
-                title: const Text("Weekly Budget"),
-                trailing: Text(budget == null ? "Not set" : "₹$budget"),
-              ),
-            ),
-
-            Card(
-              child: ListTile(
-                title: const Text("Remaining"),
-                trailing: Text(
-                  data!['remaining_budget'] == null
-                      ? "N/A"
-                      : "₹${data!['remaining_budget']}",
-                  style: TextStyle(
-                    color: data!['budget_exceeded'] ? Colors.red : Colors.green,
+            if (budget == null) ...[
+              Card(
+                color: Colors.blue.shade50,
+                child: const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    "No weekly budget set for this week.\nSet one to track your spending.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+            ],
+
+            if (budget != null) ...[
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        "Weekly Budget Usage",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(
+                        value: usagePercent,
+                        minHeight: 14,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          usagePercent > 0.9
+                              ? Colors.red
+                              : usagePercent > 0.7
+                                  ? Colors.orange
+                                  : Colors.green,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "${(usagePercent * 100).toStringAsFixed(1)}% used",
+                        textAlign: TextAlign.right,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  title: const Text("Total Spent"),
+                  trailing: Text("₹$totalSpent"),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  title: const Text("Weekly Budget"),
+                  trailing: Text("₹$budget"),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  title: const Text("Remaining"),
+                  trailing: Text(
+                    "₹${data!['remaining_budget']}",
+                    style: TextStyle(
+                      color:
+                          data!['budget_exceeded'] ? Colors.red : Colors.green,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                color: data!['budget_exceeded']
+                    ? Colors.red.shade100
+                    : Colors.green.shade100,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    data!['budget_exceeded']
+                        ? "⚠️ Budget exceeded by ₹${(data!['exceeded_by'] as num).toDouble().toStringAsFixed(2)}"
+                        : "You are within the weekly budget",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          data!['budget_exceeded'] ? Colors.red : Colors.green,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // ➕ Set / Update Button (always visible)
+            ElevatedButton(
+              onPressed: () async {
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SetWeeklyBudgetScreen(),
+                  ),
+                );
+
+                if (updated == true) {
+                  fetchWeeklyBudgetStatus();
+                }
+              },
+              child: Text(budget == null
+                  ? "Set Weekly Budget"
+                  : "Update Weekly Budget"),
             ),
           ],
         ),
