@@ -1,56 +1,64 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'expense_screen.dart';
-import 'signup_screen.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
+  final nameController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   bool isLoading = false;
 
-  Future<void> login() async {
-    setState(() => isLoading = true);
+  Future<void> signup() async {
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
 
-    final url = Uri.parse("http://10.110.214.170:8000/api/token/");
+    setState(() => isLoading = true);
+    
+    
+    final url = Uri.parse("http://10.110.214.170:8000/api/register/");
 
     try {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
+          "first_name": nameController.text,
           "username": usernameController.text,
           "password": passwordController.text,
         }),
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('access_token', data['access']);
-
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ExpensesScreen()),
-        );
-      } else {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid username or password")),
+          const SnackBar(content: Text("Registration Successful! Please Login.")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      } else {
+        final errorData = jsonDecode(response.body);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorData['message'] ?? "Registration failed")),
         );
       }
     } catch (e) {
-      debugPrint("Login error: $e");
+      debugPrint("Signup error: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -60,35 +68,46 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
+          padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.account_balance_wallet_rounded,
-                  size: 80, color: Colors.blueAccent),
-              const SizedBox(height: 20),
               const Text(
-                "Welcome Back",
-                textAlign: TextAlign.center,
+                "Create Account",
+                textAlign: TextAlign.left,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 28,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 10),
               const Text(
-                "Securely manage your expenses",
-                textAlign: TextAlign.center,
+                "Start tracking your finances today",
                 style: TextStyle(color: Colors.white38, fontSize: 16),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 40),
+
+              _buildTextField(
+                controller: nameController,
+                label: "Full Name",
+                icon: Icons.badge_outlined,
+              ),
+              const SizedBox(height: 20),
               _buildTextField(
                 controller: usernameController,
                 label: "Username",
-                icon: Icons.person_outline,
+                icon: Icons.alternate_email,
               ),
               const SizedBox(height: 20),
               _buildTextField(
@@ -97,7 +116,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: Icons.lock_outline,
                 isPassword: true,
               ),
+              const SizedBox(height: 20),
+              _buildTextField(
+                controller: confirmPasswordController,
+                label: "Confirm Password",
+                icon: Icons.lock_reset,
+                isPassword: true,
+              ),
               const SizedBox(height: 40),
+
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
@@ -106,34 +133,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  elevation: 0,
                 ),
-                onPressed: isLoading ? null : login,
+                onPressed: isLoading ? null : signup,
                 child: isLoading
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                        height: 20, width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text(
-                        "Login",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                    : const Text("Sign Up", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
+              
               const SizedBox(height: 20),
               TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignupScreen()),
-                  );
-                },
+                onPressed: () => Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => const LoginScreen())
+                ),
                 child: const Text(
-                  "Don't have an account? Sign Up",
+                  "Already have an account? Login",
                   style: TextStyle(color: Colors.blueAccent),
                 ),
               ),
@@ -159,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white38),
         filled: true,
-        fillColor: const Color(0xFF1A1A1A), 
+        fillColor: const Color(0xFF1A1A1A),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide.none,

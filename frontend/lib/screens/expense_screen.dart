@@ -1,30 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:frontend/screens/budget_home_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/expense.dart';
+import 'budget_home_screen.dart';
 import 'login_screen.dart';
 import 'add_expenses.dart';
 import 'edit_expense_screen.dart';
 import 'analytics_screen.dart';
-
-
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
 
   @override
   State<ExpensesScreen> createState() => _ExpensesScreenState();
-  int getWeekNumber(DateTime date) {
-    final firstDayOfYear = DateTime(date.year, 1, 1);
-    final daysOffset = firstDayOfYear.weekday - 1;
-    final firstMonday = firstDayOfYear.subtract(Duration(days: daysOffset));
-
-    final diff = date.difference(firstMonday).inDays;
-    return (diff / 7).floor() + 1;
-  }
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
@@ -69,9 +59,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
-
     if (!mounted) return;
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -80,189 +68,166 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
   Map<String, List<Expense>> groupExpensesByDate(List<Expense> expenses) {
     final Map<String, List<Expense>> grouped = {};
-
     for (var expense in expenses) {
       final localDate = expense.createdAt.toLocal();
-
-      final date = "${localDate.day}-${localDate.month}-${localDate.year}";
-
+      // Professional Date Format: "24 Jan 2026"
+      final date =
+          "${localDate.day} ${_getMonthName(localDate.month)} ${localDate.year}";
       if (!grouped.containsKey(date)) {
         grouped[date] = [];
       }
       grouped[date]!.add(expense);
     }
-
     return grouped;
   }
 
-  int getWeekNumber(DateTime date) {
-    final firstDayOfYear = DateTime(date.year, 1, 1);
-    final daysOffset = firstDayOfYear.weekday - 1;
-    final firstMonday = firstDayOfYear.subtract(Duration(days: daysOffset));
-
-    final diff = date.difference(firstMonday).inDays;
-    return (diff / 7).floor() + 1;
-  }
-
-  Map<String, double> getWeeklySummary(List<Expense> expenses) {
-    final Map<String, double> weeklyTotals = {};
-
-    for (var expense in expenses) {
-      final week = getWeekNumber(expense.createdAt);
-      final key = "Week $week - ${expense.createdAt.year}";
-
-      weeklyTotals[key] = (weeklyTotals[key] ?? 0) + expense.amount;
-    }
-
-    return weeklyTotals;
-  }
-
-  Map<String, double> getMonthlySummary(List<Expense> expenses) {
-    final Map<String, double> monthlyTotals = {};
-
-    for (var expense in expenses) {
-      final monthlist = {
-        1: 'January',
-        2: 'February',
-        3: 'March',
-        4: 'April',
-        5: 'May',
-        6: 'June',
-        7: 'July',
-        8: 'August',
-        9: 'September',
-        10: 'October',
-        11: 'November',
-        12: 'December'
-      };
-
-      final month = expense.createdAt.month;
-      final monthname = monthlist[month];
-      final year = expense.createdAt.year;
-
-      final key = "$monthname $year";
-
-      monthlyTotals[key] = (monthlyTotals[key] ?? 0) + expense.amount;
-    }
-
-    return monthlyTotals;
-  }
+  String _getMonthName(int month) => [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ][month - 1];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 5, 81, 144),
-        title: const Text("My Expenses"),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          "All Spending",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            color: Colors.black,
-            onPressed: () async {
-              final added = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
-              );
-
-              if (added == true) {
-                fetchExpenses(); // refresh list
-              }
-            },
+            icon: const Icon(Icons.account_balance_wallet_outlined,
+                color: Colors.blueAccent),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const BudgetHomeScreen())),
           ),
           IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            color: const Color.fromARGB(255, 0, 0, 0),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const BudgetHomeScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.show_chart),
-            color: const Color.fromARGB(255, 0, 0, 0),
-            onPressed: () {
-              Navigator.push(
+            icon:
+                const Icon(Icons.analytics_outlined, color: Colors.greenAccent),
+            onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => AnalyticsScreen(expenses: expenses),
-                ),
-              );
-            },
+                    builder: (_) => AnalyticsScreen(expenses: expenses))),
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
-            color: Colors.black,
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
             onPressed: logout,
           ),
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Colors.blueAccent))
           : expenses.isEmpty
-              ? const Center(child: Text("No expenses found"))
-              : Builder(
-                  builder: (context) {
-                    final groupedExpenses = groupExpensesByDate(expenses);
-
-                    return ListView(
-                      children: [
-                        ...groupedExpenses.entries.map((entry) {
-                          final date = entry.key;
-                          final dayExpenses = entry.value;
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                child: Text(
-                                  date,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              ...dayExpenses.map((e) {
-                                return Card(
-                                  elevation: 3,
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 4),
-                                  child: ListTile(
-                                    tileColor: Colors.black,
-                                    title: Text(e.description),
-                                    subtitle: Text(e.category),
-                                    trailing: Text(
-                                      "₹${e.amount}",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    onTap: () async {
-                                      final updated = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              EditExpenseScreen(expense: e),
-                                        ),
-                                      );
-
-                                      if (updated == true) {
-                                        fetchExpenses();
-                                      }
-                                    },
-                                  ),
-                                );
-                              }).toList(),
-                            ],
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  },
-                ),
+              ? const Center(
+                  child: Text("No expenses found",
+                      style: TextStyle(color: Colors.white38)))
+              : _buildExpenseList(),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueAccent,
+        onPressed: () async {
+          final added = await Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const AddExpenseScreen()));
+          if (added == true) fetchExpenses();
+        },
+        child: const Icon(Icons.add, color: Colors.white, size: 30),
+      ),
     );
+  }
+
+  Widget _buildExpenseList() {
+    final groupedExpenses = groupExpensesByDate(expenses);
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: groupedExpenses.length,
+      itemBuilder: (context, index) {
+        String date = groupedExpenses.keys.elementAt(index);
+        List<Expense> dayExpenses = groupedExpenses[date]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 10, left: 4),
+              child: Text(
+                date,
+                style: const TextStyle(
+                    color: Colors.white54,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 1),
+              ),
+            ),
+            ...dayExpenses.map((e) => _expenseCard(e)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _expenseCard(Expense e) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A), // Modern Deep Grey
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: Colors.blueAccent.withOpacity(0.1),
+          child: Icon(_getCategoryIcon(e.category),
+              color: Colors.blueAccent, size: 20),
+        ),
+        title: Text(
+          e.description,
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          e.category,
+          style: const TextStyle(color: Colors.white38, fontSize: 12),
+        ),
+        trailing: Text(
+          "₹${e.amount.toStringAsFixed(0)}",
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        onTap: () async {
+          final updated = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => EditExpenseScreen(expense: e)),
+          );
+          if (updated == true) fetchExpenses();
+        },
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'food':
+        return Icons.restaurant;
+      case 'travel':
+        return Icons.directions_car;
+      case 'shopping':
+        return Icons.shopping_bag;
+      default:
+        return Icons.account_balance_wallet;
+    }
   }
 }

@@ -2,129 +2,105 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class DailyAnalyticsTab extends StatelessWidget {
-  final List<Expense> expenses;
+class AnalyticsView extends StatelessWidget {
+  final String title;
+  final Map<String, double> data;
+  final Color accentColor;
 
-  const DailyAnalyticsTab({super.key, required this.expenses});
-
-  Map<String, double> getDailySummary() {
-    final Map<String, double> dailyTotals = {};
-
-    for (var e in expenses) {
-      final localDate = e.createdAt.toLocal();
-      final key = "${localDate.day}/${localDate.month}";
-
-      dailyTotals[key] = (dailyTotals[key] ?? 0) + e.amount;
-    }
-
-    return dailyTotals;
-  }
+  const AnalyticsView(
+      {super.key,
+      required this.title,
+      required this.data,
+      required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
-    final dailySummary = getDailySummary();
+    if (data.isEmpty)
+      return const Center(
+          child: Text("No data recorded",
+              style: TextStyle(color: Colors.white24)));
 
-    if (dailySummary.isEmpty) {
-      return const Center(child: Text("No data"));
-    }
-
-    final labels = dailySummary.keys.toList();
-    final values = dailySummary.values.toList();
-
-    final maxY = values.reduce((a, b) => a > b ? a : b);
-    double total = dailySummary.values.fold(0, (a, b) => a + b);
-    double avg = total / dailySummary.length;
+    final labels = data.keys.toList();
+    final values = data.values.toList();
+    
 
     return ListView(
-
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       children: [
-        const Text(
-          "Daily Spending Trend",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        
-        SizedBox(
-          height: 240,
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 20),
+
+        Container(
+          height: 280,
+          padding:
+              const EdgeInsets.only(top: 24, right: 20, left: 10, bottom: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF161616),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
+          ),
           child: LineChart(
             LineChartData(
-              minX: 0,
-              maxX: (values.length - 1).toDouble(),
-              minY: 0,
-              maxY: maxY,
-              gridData: FlGridData(show: false),
+              gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.white.withOpacity(0.05), strokeWidth: 1)),
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 1,
-                    getTitlesWidget: (value, meta) {
-                      final index = value.toInt();
-                      if (index < 0 || index >= labels.length) {
-                        return const SizedBox.shrink();
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Text(
-                          labels[index],
-                          style:
-                              const TextStyle(fontSize: 8, color: Colors.white),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 250,
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        "₹${value.toInt()}",
-                        style: const TextStyle(
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      );
-                    },
-                  ),
-                ),
                 rightTitles:
                     const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 topTitles:
                     const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      int i = value.toInt();
+                      if (i < 0 || i >= labels.length)
+                        return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(labels[i],
+                            style: const TextStyle(
+                                color: Colors.white38, fontSize: 10)),
+                      );
+                    },
+                  ),
+                ),
               ),
               lineBarsData: [
                 LineChartBarData(
                   spots: List.generate(
-                    values.length,
-                    (i) => FlSpot(i.toDouble(), values[i]),
-                  ),
+                      values.length, (i) => FlSpot(i.toDouble(), values[i])),
                   isCurved: true,
-                  curveSmoothness: 0.25,
-                  barWidth: 1.5,
-                  color: Colors.blueAccent,
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.blueAccent.withOpacity(0.3),
-                        Colors.transparent,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
+                  gradient: LinearGradient(
+                      colors: [accentColor, accentColor.withOpacity(0.6)]),
+                  barWidth: 4,
+                  isStrokeCapRound: true,
                   dotData: FlDotData(
                     show: true,
                     getDotPainter: (spot, percent, bar, index) =>
                         FlDotCirclePainter(
                       radius: 4,
-                      color: Colors.white,
+                      color: Colors.black,
                       strokeWidth: 2,
-                      strokeColor: Colors.blueAccent,
+                      strokeColor: accentColor,
+                    ),
+                  ),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        accentColor.withOpacity(0.15),
+                        Colors.transparent
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
                 ),
@@ -132,265 +108,38 @@ class DailyAnalyticsTab extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        const Text(
-          "Daily Summary",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ...dailySummary.entries.map((entry) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.blue.shade100,
-                child: Icon(Icons.receipt, color: Colors.blue),
-              ),
-              title: Text(
-                entry.key,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              trailing: Text(
-                "₹${entry.value.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          );
-        })
-      ],
-    );
-  }
-}
 
-class WeeklyAnalyticsTab extends StatelessWidget {
-  final List<Expense> expenses;
-
-  const WeeklyAnalyticsTab({super.key, required this.expenses});
-
-  int getWeekNumber(DateTime date) {
-    final firstDayOfYear = DateTime(date.year, 1, 1);
-    final diff = date.difference(firstDayOfYear).inDays;
-    return ((diff + firstDayOfYear.weekday) / 7).ceil();
-  }
-
-  Map<String, double> getWeeklySummary() {
-    final Map<String, double> weeklyTotals = {};
-
-    for (var e in expenses) {
-      final week = getWeekNumber(e.createdAt);
-      final key = "W$week-${e.createdAt.year}";
-
-      weeklyTotals[key] = (weeklyTotals[key] ?? 0) + e.amount;
-    }
-
-    return weeklyTotals;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final weeklySummary = getWeeklySummary();
-
-    if (weeklySummary.isEmpty) {
-      return const Center(child: Text("No data"));
-    }
-
-    final labels = weeklySummary.keys.toList();
-    final values = weeklySummary.values.toList();
-    final maxY = values.reduce((a, b) => a > b ? a : b);
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const Text(
-          "Weekly Spending Trend",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        const SizedBox(height: 32),
+        const Text("Details",
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 240,
-          child: LineChart(
-            LineChartData(
-              minX: 0,
-              maxX: (values.length - 1).toDouble(),
-              minY: 0,
-              maxY: maxY + 100,
-              gridData: FlGridData(show: false),
-              borderData: FlBorderData(show: false),
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 1,
-                    getTitlesWidget: (value, meta) {
-                      final i = value.toInt();
-                      if (i < 0 || i >= labels.length) {
-                        return const SizedBox.shrink();
-                      }
-                      return Text(labels[i],
-                          style: const TextStyle(fontSize: 10));
-                    },
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: maxY / 4,
-                    getTitlesWidget: (value, meta) => Text("₹${value.toInt()}",
-                        style: const TextStyle(fontSize: 10)),
-                  ),
-                ),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+
+        ...data.entries.map((entry) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(18),
               ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: List.generate(
-                    values.length,
-                    (i) => FlSpot(i.toDouble(), values[i]),
-                  ),
-                  isCurved: true,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          "Weekly Summary",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ...weeklySummary.entries.map((e) {
-          return Card(
-            child: ListTile(
-              title: Text(e.key),
-              trailing: Text(
-                "₹${e.value}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_graph_rounded, color: accentColor, size: 20),
+                  const SizedBox(width: 12),
+                  Text(entry.key,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 15)),
+                  const Spacer(),
+                  Text("₹${entry.value.toStringAsFixed(0)}",
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
+                ],
               ),
-            ),
-          );
-        })
-      ],
-    );
-  }
-}
-
-class MonthlyAnalyticsTab extends StatelessWidget {
-  final List<Expense> expenses;
-
-  const MonthlyAnalyticsTab({super.key, required this.expenses});
-
-  Map<String, double> getMonthlySummary() {
-    final Map<String, double> monthlyTotals = {};
-
-    for (var e in expenses) {
-      final key = "${e.createdAt.month}/${e.createdAt.year}";
-      monthlyTotals[key] = (monthlyTotals[key] ?? 0) + e.amount;
-    }
-
-    return monthlyTotals;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final monthlySummary = getMonthlySummary();
-
-    if (monthlySummary.isEmpty) {
-      return const Center(child: Text("No data"));
-    }
-
-    final labels = monthlySummary.keys.toList();
-    final values = monthlySummary.values.toList();
-    final maxY = values.reduce((a, b) => a > b ? a : b);
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const Text(
-          "Monthly Spending Trend",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 240,
-          child: LineChart(
-            LineChartData(
-              minX: 0,
-              maxX: (values.length - 1).toDouble(),
-              minY: 0,
-              maxY: maxY + 100,
-              gridData: FlGridData(show: false),
-              borderData: FlBorderData(show: false),
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 1,
-                    getTitlesWidget: (value, meta) {
-                      final i = value.toInt();
-                      if (i < 0 || i >= labels.length) {
-                        return const SizedBox.shrink();
-                      }
-                      return Text(labels[i],
-                          style: const TextStyle(fontSize: 10));
-                    },
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: maxY / 4,
-                    getTitlesWidget: (value, meta) => Text("₹${value.toInt()}",
-                        style: const TextStyle(fontSize: 10)),
-                  ),
-                ),
-                rightTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles:
-                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: List.generate(
-                    values.length,
-                    (i) => FlSpot(i.toDouble(), values[i]),
-                  ),
-                  isCurved: true,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          "Monthly Summary",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ...monthlySummary.entries.map((e) {
-          return Card(
-            child: ListTile(
-              title: Text(e.key),
-              trailing: Text(
-                "₹${e.value}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          );
-        })
+            )),
       ],
     );
   }
@@ -406,11 +155,21 @@ class AnalyticsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
+        backgroundColor: Colors.black,
         appBar: AppBar(
-           backgroundColor: const Color.fromARGB(255, 5, 81, 144),
-          title: const Text("Analytics"),
-          bottom: const TabBar(
-            tabs: [
+          backgroundColor: Colors.black,
+          elevation: 0,
+          title: const Text(
+            "Analytics",
+            style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+          ),
+          bottom: TabBar(
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorColor: Colors.blueAccent,
+            unselectedLabelColor: Colors.white38,
+            labelColor: Colors.blueAccent,
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            tabs: const [
               Tab(text: "Daily"),
               Tab(text: "Weekly"),
               Tab(text: "Monthly"),
@@ -426,5 +185,80 @@ class AnalyticsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class DailyAnalyticsTab extends StatelessWidget {
+  final List<Expense> expenses;
+  const DailyAnalyticsTab({super.key, required this.expenses});
+
+  Map<String, double> getSummary() {
+    final Map<String, double> totals = {};
+    for (var e in expenses) {
+      final localDate = e.createdAt.toLocal();
+      final key = "${localDate.day}/${localDate.month}";
+      totals[key] = (totals[key] ?? 0) + e.amount;
+    }
+    return totals;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnalyticsView(
+        title: "Daily Spending Trend",
+        data: getSummary(),
+        accentColor: Colors.blueAccent);
+  }
+}
+
+class WeeklyAnalyticsTab extends StatelessWidget {
+  final List<Expense> expenses;
+  const WeeklyAnalyticsTab({super.key, required this.expenses});
+
+  int getWeekNumber(DateTime date) {
+    final firstDayOfYear = DateTime(date.year, 1, 1);
+    final diff = date.difference(firstDayOfYear).inDays;
+    return ((diff + firstDayOfYear.weekday) / 7).ceil();
+  }
+
+  Map<String, double> getSummary() {
+    final Map<String, double> totals = {};
+    for (var e in expenses) {
+      final week = getWeekNumber(e.createdAt.toLocal());
+      final key = "W$week-${e.createdAt.year}";
+      totals[key] = (totals[key] ?? 0) + e.amount;
+    }
+    return totals;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnalyticsView(
+        title: "Weekly Spending Trend",
+        data: getSummary(),
+        accentColor: Colors.greenAccent);
+  }
+}
+
+class MonthlyAnalyticsTab extends StatelessWidget {
+  final List<Expense> expenses;
+  const MonthlyAnalyticsTab({super.key, required this.expenses});
+
+  Map<String, double> getSummary() {
+    final Map<String, double> totals = {};
+    for (var e in expenses) {
+      final key =
+          "${e.createdAt.toLocal().month}/${e.createdAt.toLocal().year}";
+      totals[key] = (totals[key] ?? 0) + e.amount;
+    }
+    return totals;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnalyticsView(
+        title: "Monthly Spending Trend",
+        data: getSummary(),
+        accentColor: Colors.purpleAccent);
   }
 }

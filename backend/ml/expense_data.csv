@@ -3,10 +3,26 @@ Uber ride,Transport
 Bus ticket,Transport
 Train pass,Transport
 Petrol refill,Transport
+Lyft trip,Transport
+Ola cab,Transport
+Gas station fuel,Transport
+Monthly Metrocard,Transport
+Parking fee,Transport
+Airport shuttle,Transport
+Toll plaza payment,Transport
+Flight ticket,Transport
 Pizza order,Food
 Burger and fries,Food
 Coffee,Food
 Tea and snacks,Food
+Starbucks latte,Food
+McDonalds meal,Food
+Zomato food delivery,Food
+Swiggy order,Food
+Dinner at restaurant,Food
+Lunch at cafeteria,Food
+Subway sandwich,Food
+Dominos pizza,Food
 Electricity bill,Bills
 Water bill,Bills
 Internet recharge,Bills
@@ -14,12 +30,74 @@ Mobile recharge,Bills
 Netflix subscription,Entertainment
 Movie ticket,Entertainment
 Spotify premium,Entertainment
+Gas utility payment,Bills
+Trash collection fee,Bills
+Broadband bill,Bills
+Airtel prepaid,Bills
+Jio recharge,Bills
+Phone insurance,Bills
+Rent payment,Bills
 Gym membership,Health
 Doctor consultation,Health
 Medicine purchase,Health
+Dental checkup,Health
+Pharmacy medicine,Health
+Health insurance premium,Health
+Hospital bill,Health
+Yoga class,Health
+Vitamins and supplements,Health
 Books purchase,Education
 Online course,Education
 College fees,Education
+Udemy course,Education
+Coursera certificate,Education
+Stationery items,Education
+Library fine,Education
+Exam registration,Education
 Groceries shopping,Groceries
 Vegetables and fruits,Groceries
 Milk and bread,Groceries
+Walmart grocery run,Groceries
+Supermarket shopping,Groceries
+Whole Foods groceries,Groceries
+Organic eggs and meat,Groceries
+Rice and flour,Groceries
+Cleaning supplies,Groceries
+Kitchen essentials,Groceries
+Amazon shopping,Shopping
+Zara clothing,Shopping
+H&M fashion,Shopping
+Electronic gadget,Shopping
+Nike shoes,Shopping
+Home decor items,Shopping
+Gifts for friend,Shopping
+Laptop bag,Shopping
+Headphones purchase,Shopping
+Watch repair,Shopping
+PS5 game purchase,Entertainment
+Cinema popcorn,Entertainment
+Amusement park ticket,Entertainment
+Concert passes,Entertainment
+YouTube Premium,Entertainment
+Steam game store,Entertainment
+Bookmyshow tickets,Entertainment
+Car service,Transport
+Bike repair,Transport
+Diesel for car,Transport
+Public bus fare,Transport
+Train ticket booking,Transport
+Ice cream treat,Food
+Office lunch,Food
+Breakfast at cafe,Food
+Grocery delivery,Groceries
+Fresh fruits,Groceries
+Soft drinks,Groceries
+Toiletries,Groceries
+School fees,Education
+Tuition class payment,Education
+Science project kit,Education
+Skillshare subscription,Education
+Consultation fee,Health
+Optician glasses,Health
+Blood test,Health
+Gym supplements,Health

@@ -17,7 +17,21 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 
+from rest_framework.permissions import AllowAny
+from .serializers import RegisterSerializer
 
+class RegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                "message": "User created successfully",
+                "username": user.username
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 def get_week_start(date):
     return date - timedelta(days=date.weekday())
 
